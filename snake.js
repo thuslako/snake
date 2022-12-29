@@ -28,14 +28,14 @@ export function setupGame() {
     DOWN: (head) => [head[0] + 1, head[1]],
   };
   const moveQueue = [];
+  let lastMove = "RIGHT";
+  let gameLoop = null;
 
   let board = document.getElementById("board");
-  setInterval(() => update(), 100);
-
   const snakeSections = (snake) => snake.map(([i, j]) => `${i}_${j}`);
 
   const input = (e) => {
-    const lastMove = moveQueue[moveQueue.length - 1];
+    e.preventDefault();
     switch (e.keyCode) {
       case keys.LEFT:
       case keys.A:
@@ -54,22 +54,23 @@ export function setupGame() {
         if (lastMove !== "UP") moveQueue.push("DOWN");
         break;
       default:
-        moveQueue.push("RIGHT");
+        moveQueue.push(lastMove);
         break;
     }
-    console.log(moveQueue);
-    console.log(snake);
   };
 
   window.addEventListener("keydown", input);
 
   const movement = () => {
-    if (!moveQueue.length) return;
-    snake.shift();
     let head = snake[snake.length - 1];
-    const _move = moves[moveQueue.pop()];
+    const currentMove = moveQueue.shift();
+    if (currentMove) lastMove = currentMove;
+
+    const _move = moves[lastMove];
     const _head = _move(head);
-    console.log(snake);
+
+    if (snakeBounds(_head)) stopGame();
+    else snake.shift();
     snake.push(_head);
   };
 
@@ -90,7 +91,19 @@ export function setupGame() {
       }
     }
   };
-  const initCanvas = () => {
+
+  const snakeBounds = (head) => {
+    const [i, j] = head;
+    if (i < 0 || j < 0) return true;
+    if (i >= rows || j >= cols) return true;
+    if (snakeSections(snake).indexOf(`${i}_${j}`) >= 0) return true;
+    return false;
+  };
+
+  const stopGame = () => {
+    clearInterval(gameLoop);
+  };
+  const initGame = () => {
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < cols; j++) {
         let box = document.createElement("div");
@@ -107,6 +120,7 @@ export function setupGame() {
       }
     }
     addSnake(snake);
+    gameLoop = setInterval(() => update(), 500);
   };
-  initCanvas();
+  initGame();
 }
