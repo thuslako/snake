@@ -18,6 +18,7 @@ export function setupGame() {
     D: 68,
     W: 87,
     S: 83,
+    ENTER: 13,
   };
 
   const boxes = new Map();
@@ -52,6 +53,9 @@ export function setupGame() {
       case keys.DOWN:
       case keys.S:
         if (lastMove !== "UP") moveQueue.push("DOWN");
+        break;
+      case keys.ENTER:
+        restartGame();
         break;
       default:
         moveQueue.push(lastMove);
@@ -98,6 +102,17 @@ export function setupGame() {
     if (i >= rows || j >= cols) return true;
     if (snakeSections(snake).indexOf(`${i}_${j}`) >= 0) return true;
     return false;
+  };
+
+  const restartGame = () => {
+    snake = [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+    ];
+    lastMove = "RIGHT";
+    gameLoop = setInterval(() => update(), 500);
   };
 
   const stopGame = () => {
