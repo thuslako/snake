@@ -20,7 +20,7 @@ export function setupGame() {
     S: 83,
     ENTER: 13,
   };
-
+  const notification = document.getElementById("notification");
   const boxes = new Map();
   const moves = {
     LEFT: (head) => [head[0], head[1] - 1],
@@ -31,6 +31,7 @@ export function setupGame() {
   const moveQueue = [];
   let lastMove = "RIGHT";
   let gameLoop = null;
+  let isRunning = false;
 
   let board = document.getElementById("board");
   const snakeSections = (snake) => snake.map(([i, j]) => `${i}_${j}`);
@@ -55,16 +56,13 @@ export function setupGame() {
         if (lastMove !== "UP") moveQueue.push("DOWN");
         break;
       case keys.ENTER:
-        restartGame();
+        if (!isRunning) restartGame();
         break;
       default:
         moveQueue.push(lastMove);
         break;
     }
   };
-
-  window.addEventListener("keydown", input);
-
   const movement = () => {
     let head = snake[snake.length - 1];
     const currentMove = moveQueue.shift();
@@ -112,10 +110,14 @@ export function setupGame() {
       [0, 3],
     ];
     lastMove = "RIGHT";
+    isRunning = true;
+    notification.classList.add("hidden");
     gameLoop = setInterval(() => update(), 500);
   };
 
   const stopGame = () => {
+    isRunning = false;
+    notification.classList.remove("hidden");
     clearInterval(gameLoop);
   };
   const initGame = () => {
@@ -136,6 +138,7 @@ export function setupGame() {
     }
     addSnake(snake);
     gameLoop = setInterval(() => update(), 500);
+    window.addEventListener("keydown", input);
   };
   initGame();
 }
