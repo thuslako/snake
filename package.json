@@ -1,6 +1,7 @@
 {
   "name": "snake",
   "private": true,
+  "license": "MIT",
   "version": "0.0.0",
   "type": "module",
   "scripts": {
@@ -10,5 +11,9 @@
   },
   "devDependencies": {
     "vite": "^4.0.0"
+  },
+  "dependencies": {
+    "jest": "^29.3.1",
+    "jsdom": "^20.0.3"
   }
 }

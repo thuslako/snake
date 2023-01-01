@@ -1,4 +1,5 @@
 import "./style.css";
-import { setupGame } from "./snake.js";
+import Snake from "./snake";
 
-setupGame();
+const snake = new Snake();
+snake.init();
