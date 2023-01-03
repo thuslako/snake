@@ -1,5 +1,5 @@
 "use strict";
-export default class Snake {
+export class Snake {
   constructor() {
     this.speed = 500;
     this.boxes = new Map();
@@ -13,6 +13,7 @@ export default class Snake {
       UP: (head) => [head[0] - 1, head[1]],
       DOWN: (head) => [head[0] + 1, head[1]],
     };
+    this.emptyBoxes = [];
     this.snake = [
       [0, 0],
       [0, 1],
@@ -42,13 +43,22 @@ export default class Snake {
         box.style.top = `${i * this.boxSize}px`;
         box.style.left = `${j * this.boxSize}px`;
         this.board.appendChild(box);
-        this.boxes.set(`${i}_${j}`, box);
+        const position = `${i}_${j}`;
+        this.boxes.set(position, box);
+        this.emptyBoxes.push(position);
       }
     }
     this.addSnake();
     this.addFood(true);
     this.ng = setInterval(() => this.update(), this.speed);
     window.addEventListener("keydown", (e) => this.controls(e));
+  }
+
+  qa() {
+    // TODO function to ensure game logic and functionality
+    // - check that snake position isn't in empty boxes
+    // - ensure food does spawn on snake body
+    // - on fail stop and restart
   }
 
   controls(e) {
@@ -96,30 +106,36 @@ export default class Snake {
 
   addSnake() {
     let _snake = this.snakeSections(this.snake);
+    this.emptyBoxes = [];
     for (let i = 0; i < this.rows; i++) {
       for (let j = 0; j < this.cols; j++) {
         let position = `${i}_${j}`;
         let box = this.boxes.get(position);
-        box.style.background =
-          _snake.indexOf(position) >= 0 ? "#A3CB38" : "#222f3e";
+        if (_snake.indexOf(position) >= 0) {
+          box.style.background = "#A3CB38";
+        } else {
+          box.style.background = "#222f3e";
+          this.emptyBoxes.push(position);
+        }
       }
     }
   }
   addFood(status = false) {
     if (!status) return;
-    const row = Math.floor(Math.random() * this.rows);
-    const col = Math.floor(Math.random() * this.cols);
-    this.food = `${row}_${col}`;
-    let box = this.boxes.get(this.food);
-    box.style.background =
-      this.snakeSections(this.snake).indexOf(this.food) < 0
-        ? "tomato"
-        : "#222f3e";
+    const position = Math.floor(Math.random() * this.emptyBoxes.length);
+    this.food = this.emptyBoxes[position];
+    if (this.emptyBoxes.length) {
+      let box = this.boxes.get(this.food);
+      box.style.background =
+        this.snakeSections(this.snake).indexOf(this.food) < 0
+          ? "tomato"
+          : "#222f3e";
+    }
   }
 
-  eaten(position) {
+  isEaten() {
     let _snake = this.snakeSections(this.snake);
-    return _snake.indexOf(position) >= 0 ? true : false;
+    return _snake.indexOf(this.food) >= 0 ? true : false;
   }
 
   grow() {
@@ -129,8 +145,8 @@ export default class Snake {
 
   update() {
     this.move();
-    // this.addFood();
     this.addSnake();
+    this.addFood();
   }
 
   move() {
@@ -145,8 +161,13 @@ export default class Snake {
     const _head = _move(head);
 
     if (this.snakeBounds(_head)) this.stop();
-    // if (isEaten(head)) addFood(true);
-    else this.snake.shift();
+    if (this.isEaten()) {
+      this.addFood(true);
+      // TODO add to tail
+    } else {
+      this.snake.shift();
+      this.addFood();
+    }
     this.snake.push(_head);
   }
 
@@ -166,6 +187,7 @@ export default class Snake {
       [0, 3],
     ];
     this.addSnake();
+    this.addFood();
     this.ng = setInterval(() => this.update(), this.speed);
     this.isDead = false;
   }
