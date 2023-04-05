@@ -26,6 +26,7 @@ export class Snake {
     this.board = null;
     this.notification = null;
     this.isDead = false;
+    this.isEaten = true;
   }
 
   init() {
@@ -49,16 +50,9 @@ export class Snake {
       }
     }
     this.addSnake();
-    this.addFood(true);
+    this.addFood();
     this.ng = setInterval(() => this.update(), this.speed);
     window.addEventListener("keydown", (e) => this.controls(e));
-  }
-
-  qa() {
-    // TODO function to ensure game logic and functionality
-    // - check that snake position isn't in empty boxes
-    // - ensure food does spawn on snake body
-    // - on fail stop and restart
   }
 
   controls(e) {
@@ -120,27 +114,22 @@ export class Snake {
       }
     }
   }
-  addFood(status = false) {
-    if (!status) return;
-    const position = Math.floor(Math.random() * this.emptyBoxes.length);
-    this.food = this.emptyBoxes[position];
-    if (this.emptyBoxes.length) {
-      let box = this.boxes.get(this.food);
-      box.style.background =
-        this.snakeSections(this.snake).indexOf(this.food) < 0
-          ? "tomato"
-          : "#222f3e";
+  addFood() {
+    if (this.isEaten){
+      this.grow();
+      let random = Math.floor(Math.random() * this.emptyBoxes.length);
+      this.food = this.emptyBoxes[random];
+      this.isEaten = false;
     }
-  }
-
-  isEaten() {
-    let _snake = this.snakeSections(this.snake);
-    return _snake.indexOf(this.food) >= 0 ? true : false;
+    let box = this.boxes.get(this.food);
+    box.style.background = "#ff4757";
   }
 
   grow() {
-    // TODO
-    // - add new block to the tail once called
+    const [i, j] = this.snake[0];
+    const _move = this.moves[this.lastMove];
+    const _head = _move([i, j]);
+    this.snake.unshift(_head);
   }
 
   update() {
@@ -161,12 +150,13 @@ export class Snake {
     const _head = _move(head);
 
     if (this.snakeBounds(_head)) this.stop();
-    if (this.isEaten()) {
-      this.addFood(true);
-      // TODO add to tail
+
+    if (this.food === `${_head[0]}_${_head[1]}`) {
+      this.isEaten = true;
+    } else if (this.snakeSections(this.snake).indexOf(`${_head[0]}_${_head[1]}`) >= 0) {
+      this.stop();
     } else {
       this.snake.shift();
-      this.addFood();
     }
     this.snake.push(_head);
   }
